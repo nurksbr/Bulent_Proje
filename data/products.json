@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "name": "Bluetooth Hoparlör",
+    "description": "Yüksek ses kalitesi ile taşınabilir hoparlör. Su geçirmez yapısı ve 20 saat pil ömrü ile ideal.",
+    "price": 499
+  },
+  {
+    "id": 2,
+    "name": "Kablosuz Mouse",
+    "description": "Ergonomik tasarım ve uzun pil ömrü. Hassas sensör teknolojisi ile her yüzeyde mükemmel çalışır.",
+    "price": 299
+  },
+  {
+    "id": 3,
+    "name": "Mekanik Klavye",
+    "description": "RGB aydınlatmalı mekanik tuşlar. Oyuncular ve profesyoneller için tasarlanmış dayanıklı yapı.",
+    "price": 899
+  },
+  {
+    "id": 4,
+    "name": "Akıllı Saat",
+    "description": "Kalp ritmi takibi, uyku analizi ve spor modları. Su geçirmez, şık tasarımlı akıllı saat.",
+    "price": 1299
+  },
+  {
+    "id": 5,
+    "name": "Kablosuz Kulaklık",
+    "description": "Aktif gürültü önleme teknolojisi ve 30 saat pil ömrü. Kristal netliğinde ses kalitesi sunar.",
+    "price": 799
+  }
+] 

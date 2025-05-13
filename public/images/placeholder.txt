@@ -1,0 +1,9 @@
+Bu klasördeki tüm görsel dosyalarını, ücretsiz stok fotoğraf sitelerinden uygun görseller indirip 
+değiştirmeniz gerekiyor. Şu dosyaları oluşturmalısınız:
+
+1. hero-electronics.jpg - Ana sayfa hero bölümü için elektronik ürün görseli
+2. electronics.jpg - Genel elektronik ürünler için 
+3. headphones.jpg - Kulaklık görseli
+4. laptop.jpg - Laptop görseli
+5. smartwatch.jpg - Akıllı saat görseli 
+6. speaker.jpg - Hoparlör görseli 
