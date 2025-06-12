@@ -1,8 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { PDFDownloadLink, Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/renderer';
+import { collection, getDocs, query, where } from "firebase/firestore";
+import { db } from "../firebase/config";
+import UrunEkleModal from "../components/UrunEkleModal";
 
 // Font.register({
 //   family: 'Roboto',
@@ -10,10 +13,11 @@ import { PDFDownloadLink, Document, Page, Text, View, StyleSheet, Font } from '@
 // });
 
 interface Urun {
+  id: string;
   ad: string;
   kategori: string;
-  fiyat: string;
-  stok: string;
+  fiyat: number;
+  stok: number;
   durum: string;
   durumRenk: string;
 }
@@ -204,7 +208,7 @@ const TekilUrunFaturaPDF = ({ urun }: { urun: Urun }) => {
                 <Text style={styles.tableCell}>{urun.kategori}</Text>
               </View>
               <View style={styles.tableCol}>
-                <Text style={styles.tableCell}>{urun.fiyat}</Text>
+                <Text style={styles.tableCell}>{urun.fiyat.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' })}</Text>
               </View>
               <View style={styles.tableCol}>
                 <Text style={styles.tableCell}>{urun.stok}</Text>
@@ -217,7 +221,7 @@ const TekilUrunFaturaPDF = ({ urun }: { urun: Urun }) => {
         <View style={styles.totalSection}>
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>Ara Toplam:</Text>
-            <Text style={styles.totalValue}>{urun.fiyat}</Text>
+            <Text style={styles.totalValue}>{urun.fiyat.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' })}</Text>
           </View>
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>KDV (%18):</Text>
@@ -317,6 +321,30 @@ const aktifProjeler = [
 ];
 
 export default function GuvenlikSistemleri() {
+  const [urunler, setUrunler] = useState<Urun[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchUrunler();
+  }, []);
+
+  const fetchUrunler = async () => {
+    try {
+      const q = query(collection(db, "products"), where("kategori", "==", "Güvenlik Sistemleri"));
+      const querySnapshot = await getDocs(q);
+      const urunlerData = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Urun[];
+      setUrunler(urunlerData);
+    } catch (error) {
+      console.error("Ürünler yüklenirken hata oluştu:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="flex min-h-screen bg-gray-50">
       {/* Sol Menü */}
@@ -367,51 +395,18 @@ export default function GuvenlikSistemleri() {
           </div>
         </div>
 
-        {/* PDF İndirme Butonu */}
-        <div className="mb-6">
-          <PDFDownloadLink
-            document={<TekilUrunFaturaPDF urun={guvenlikUrunleri[0]} />}
-            fileName={`${guvenlikUrunleri[0].ad.toLowerCase().replace(/\s+/g, '-')}-fatura-${new Date().toISOString().split('T')[0]}.pdf`}
-            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg inline-flex items-center"
-          >
-            {({ blob, url, loading, error }) =>
-              loading ? 'PDF Hazırlanıyor...' : 'PDF Fatura İndir'
-            }
-          </PDFDownloadLink>
-        </div>
-
-        {/* Kartlar */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl p-6 shadow flex flex-col items-center">
-            <div className="text-sm text-gray-500 mb-2">Toplam Ürün</div>
-            <div className="text-3xl font-bold">38</div>
-            <div className="text-green-600 text-xs mt-1">+5.2%</div>
+        {/* Ürün Tablosu */}
+        <div className="bg-white rounded-xl p-6 shadow mb-8">
+          <div className="flex justify-between items-center mb-4">
+            <div className="font-semibold text-lg">Güvenlik Sistemleri Ürünleri</div>
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
+            >
+              Yeni Ürün Ekle
+            </button>
           </div>
-          <div className="bg-white rounded-xl p-6 shadow flex flex-col items-center">
-            <div className="text-sm text-gray-500 mb-2">Aktif Projeler</div>
-            <div className="text-3xl font-bold">12</div>
-            <div className="text-green-600 text-xs mt-1">+3.1%</div>
-          </div>
-          <div className="bg-white rounded-xl p-6 shadow flex flex-col items-center">
-            <div className="text-sm text-gray-500 mb-2">Tamamlanan Projeler</div>
-            <div className="text-3xl font-bold">45</div>
-            <div className="text-green-600 text-xs mt-1">+8.5%</div>
-          </div>
-          <div className="bg-white rounded-xl p-6 shadow flex flex-col items-center">
-            <div className="text-sm text-gray-500 mb-2">Stok Uyarısı</div>
-            <div className="text-3xl font-bold">3</div>
-            <div className="text-red-600 text-xs mt-1">-1.2%</div>
-          </div>
-        </div>
-
-        {/* Tablolar */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Güvenlik Ürünleri */}
-          <div className="bg-white rounded-xl p-6 shadow">
-            <div className="flex justify-between items-center mb-4">
-              <div className="font-semibold text-lg">Güvenlik Ürünleri</div>
-              <a href="#" className="text-red-500 text-sm font-medium">Tüm Ürünler</a>
-            </div>
+          <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-gray-500 text-xs">
@@ -420,67 +415,74 @@ export default function GuvenlikSistemleri() {
                   <th className="text-left py-2">FİYAT</th>
                   <th className="text-left py-2">STOK</th>
                   <th className="text-left py-2">DURUM</th>
-                  <th className="text-left py-2">İŞLEM</th>
                 </tr>
               </thead>
               <tbody>
-                {guvenlikUrunleri.map((u) => (
-                  <tr key={u.ad} className="border-b last:border-b-0">
-                    <td className="py-2 font-medium">{u.ad}</td>
-                    <td className="py-2">{u.kategori}</td>
-                    <td className="py-2">{u.fiyat}</td>
-                    <td className="py-2">{u.stok}</td>
-                    <td className="py-2">
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${u.durumRenk}`}>{u.durum}</span>
-                    </td>
-                    <td className="py-2">
-                      <PDFDownloadLink
-                        document={<TekilUrunFaturaPDF urun={u} />}
-                        fileName={`${u.ad.toLowerCase().replace(/\s+/g, '-')}-fatura-${new Date().toISOString().split('T')[0]}.pdf`}
-                        className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs"
-                      >
-                        {({ blob, url, loading, error }) =>
-                          loading ? 'Hazırlanıyor...' : 'Fatura Oluştur'
-                        }
-                      </PDFDownloadLink>
-                    </td>
+                {loading ? (
+                  <tr>
+                    <td colSpan={5} className="text-center py-4">Yükleniyor...</td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Aktif Projeler */}
-          <div className="bg-white rounded-xl p-6 shadow">
-            <div className="flex justify-between items-center mb-4">
-              <div className="font-semibold text-lg">Aktif Projeler</div>
-              <a href="#" className="text-red-500 text-sm font-medium">Tüm Projeler</a>
-            </div>
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-gray-500 text-xs">
-                  <th className="text-left py-2">PROJE NO</th>
-                  <th className="text-left py-2">MÜŞTERİ</th>
-                  <th className="text-left py-2">ÜRÜN</th>
-                  <th className="text-left py-2">DURUM</th>
-                </tr>
-              </thead>
-              <tbody>
-                {aktifProjeler.map((p) => (
-                  <tr key={p.no} className="border-b last:border-b-0">
-                    <td className="py-2 font-medium text-red-500">{p.no}</td>
-                    <td className="py-2">{p.musteri}</td>
-                    <td className="py-2">{p.urun}</td>
-                    <td className="py-2">
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${p.durumRenk}`}>{p.durum}</span>
-                    </td>
+                ) : urunler.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="text-center py-4">Henüz ürün eklenmemiş</td>
                   </tr>
-                ))}
+                ) : (
+                  urunler.map((urun) => (
+                    <tr key={urun.id} className="border-b last:border-b-0">
+                      <td className="py-2 font-medium">{urun.ad}</td>
+                      <td className="py-2">{urun.kategori}</td>
+                      <td className="py-2">{urun.fiyat.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' })}</td>
+                      <td className="py-2">{urun.stok}</td>
+                      <td className="py-2">
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${urun.durumRenk}`}>
+                          {urun.durum}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
         </div>
+
+        {/* Aktif Projeler Tablosu */}
+        <div className="bg-white rounded-xl p-6 shadow">
+          <div className="flex justify-between items-center mb-4">
+            <div className="font-semibold text-lg">Aktif Projeler</div>
+            <a href="#" className="text-red-500 text-sm font-medium">Tüm Projeler</a>
+          </div>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-gray-500 text-xs">
+                <th className="text-left py-2">PROJE NO</th>
+                <th className="text-left py-2">MÜŞTERİ</th>
+                <th className="text-left py-2">ÜRÜN</th>
+                <th className="text-left py-2">DURUM</th>
+              </tr>
+            </thead>
+            <tbody>
+              {aktifProjeler.map((p) => (
+                <tr key={p.no} className="border-b last:border-b-0">
+                  <td className="py-2 font-medium text-red-500">{p.no}</td>
+                  <td className="py-2">{p.musteri}</td>
+                  <td className="py-2">{p.urun}</td>
+                  <td className="py-2">
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${p.durumRenk}`}>{p.durum}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </main>
+
+      {/* Ürün Ekleme Modal */}
+      <UrunEkleModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        kategori="Güvenlik Sistemleri"
+      />
     </div>
   );
 } 
