@@ -26,6 +26,7 @@ export default function Sidebar() {
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+  const [openSubmenus, setOpenSubmenus] = useState<{ [key: string]: boolean }>({})
   
   // Responsive davranış için medya sorgusu
   useEffect(() => {
@@ -71,6 +72,10 @@ export default function Sidebar() {
   const toggle = useCallback(() => {
     setIsOpen(prev => !prev)
   }, [])
+  
+  const handleSubmenuToggle = (id: string) => {
+    setOpenSubmenus((prev) => ({ ...prev, [id]: !prev[id] }))
+  }
   
   // Sidebar menüsü için veri 
   const menuGroups: MenuGroup[] = [
@@ -216,26 +221,66 @@ export default function Sidebar() {
                 <ul className="space-y-1">
                   {group.items.map((item) => (
                     <li key={item.id}>
-                      <Link
-                        href={item.path}
-                        className={`group flex items-center px-3 py-2 text-sm font-medium rounded-md ${
-                          isActive(item.path)
-                            ? 'text-blue-700 bg-blue-50'
-                            : 'text-gray-700 hover:text-blue-700 hover:bg-gray-50'
-                        }`}
-                      >
-                        <span className={`mr-3 ${
-                          isActive(item.path) ? 'text-blue-600' : 'text-gray-500 group-hover:text-blue-600'
-                        }`}>
-                          {item.icon}
-                        </span>
-                        <span className="flex-1 truncate">{item.title}</span>
-                        {item.badge && (
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium text-white ${item.badge.color}`}>
-                            {item.badge.count}
+                      {item.children ? (
+                        <>
+                          <button
+                            type="button"
+                            className={`group flex items-center w-full px-3 py-2 text-sm font-medium rounded-md focus:outline-none transition-colors ${
+                              isActive(item.path)
+                                ? 'text-blue-700 bg-blue-50'
+                                : 'text-gray-700 hover:text-blue-700 hover:bg-gray-50'
+                            }`}
+                            onClick={() => handleSubmenuToggle(item.id)}
+                          >
+                            <span className={`mr-3 ${
+                              isActive(item.path) ? 'text-blue-600' : 'text-gray-500 group-hover:text-blue-600'
+                            }`}>
+                              {item.icon}
+                            </span>
+                            <span className="flex-1 truncate text-left">{item.title}</span>
+                            <svg className={`ml-2 h-4 w-4 transition-transform ${openSubmenus[item.id] ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+                          </button>
+                          {openSubmenus[item.id] && (
+                            <ul className="ml-8 mt-1 space-y-1">
+                              {item.children.map((child) => (
+                                <li key={child.id}>
+                                  <Link
+                                    href={child.path}
+                                    className={`block px-3 py-2 text-sm rounded-md transition-colors ${
+                                      isActive(child.path)
+                                        ? 'text-blue-700 bg-blue-50'
+                                        : 'text-gray-700 hover:text-blue-700 hover:bg-gray-50'
+                                    }`}
+                                  >
+                                    {child.title}
+                                  </Link>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </>
+                      ) : (
+                        <Link
+                          href={item.path}
+                          className={`group flex items-center px-3 py-2 text-sm font-medium rounded-md ${
+                            isActive(item.path)
+                              ? 'text-blue-700 bg-blue-50'
+                              : 'text-gray-700 hover:text-blue-700 hover:bg-gray-50'
+                          }`}
+                        >
+                          <span className={`mr-3 ${
+                            isActive(item.path) ? 'text-blue-600' : 'text-gray-500 group-hover:text-blue-600'
+                          }`}>
+                            {item.icon}
                           </span>
-                        )}
-                      </Link>
+                          <span className="flex-1 truncate">{item.title}</span>
+                          {item.badge && (
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium text-white ${item.badge.color}`}>
+                              {item.badge.count}
+                            </span>
+                          )}
+                        </Link>
+                      )}
                     </li>
                   ))}
                 </ul>

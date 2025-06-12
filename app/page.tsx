@@ -1,20 +1,20 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 const menu = [
-  { name: "Dashboard", active: true },
-  { name: "Güvenlik Sistemleri" },
-  { name: "Ağ Teknolojileri" },
-  { name: "Data Veri Güvenliği" },
-  { name: "Road Blocker" },
-  { name: "Projeler" },
+  { name: "Dashboard", active: true, href: "/" },
+  { name: "Güvenlik Sistemleri", active: false, href: "/guvenlik-sistemleri" },
+  { name: "Ağ Teknolojileri", href: "/ag-teknolojileri" },
+  { name: "Data Veri Güvenliği", href: "/data-veri-guvenligi" },
+  { name: "Road Blocker", href: "/road-blocker" },
+  { name: "Projeler", href: "/projeler" },
 ];
 
 const sonSatislar = [
   { no: "SP234612", musteri: "Belediye Binası", tutar: "₺124,850", durum: "Tamamlandı", durumRenk: "bg-green-100 text-green-700" },
   { no: "SP234611", musteri: "Plaza İş Merkezi", tutar: "₺56,730", durum: "Tamamlandı", durumRenk: "bg-green-100 text-green-700" },
-  { no: "SP234610", musteri: "Otel Kompleksi", tutar: "₺89,500", durum: "Kargoya Verildi", durumRenk: "bg-blue-100 text-blue-700" },
   { no: "SP234609", musteri: "Alışveriş Merkezi", tutar: "₺212,750", durum: "İptal Edildi", durumRenk: "bg-red-100 text-red-700" },
   { no: "SP234608", musteri: "Organize Sanayi", tutar: "₺95,420", durum: "Tamamlandı", durumRenk: "bg-green-100 text-green-700" },
 ];
@@ -39,15 +39,19 @@ export default function Dashboard() {
           </div>
           <nav className="space-y-2">
             {menu.map((item) => (
-              <div
-                key={item.name}
-                className={`flex items-center px-3 py-2 rounded-lg cursor-pointer transition-colors ${item.active ? "bg-gray-900 text-white" : "hover:bg-gray-800 text-gray-300"}`}
-              >
-                {item.name === "Dashboard" && (
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0h6" /></svg>
-                )}
-                {item.name}
-              </div>
+              <Link href={item.href} key={item.name}>
+                <div
+                  className={`flex items-center px-3 py-2 rounded-lg cursor-pointer transition-colors ${item.active ? "bg-gray-900 text-white" : "hover:bg-gray-800 text-gray-300"}`}
+                >
+                  {item.name === "Dashboard" && (
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0h6" /></svg>
+                  )}
+                  {item.name === "Güvenlik Sistemleri" && (
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                  )}
+                  {item.name}
+                </div>
+              </Link>
             ))}
           </nav>
         </div>
