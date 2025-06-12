@@ -9,14 +9,14 @@ module.exports = {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#3b82f6',
-          dark: '#2563eb',
-          light: '#60a5fa',
+          DEFAULT: 'rgb(var(--primary))',
+          light: 'rgb(var(--primary-light))',
+          dark: 'rgb(var(--primary-dark))',
         },
         secondary: {
-          DEFAULT: '#10b981',
-          dark: '#059669',
-          light: '#34d399',
+          DEFAULT: 'rgb(var(--secondary))',
+          light: 'rgb(var(--secondary-light))',
+          dark: 'rgb(var(--secondary-dark))',
         },
       },
       fontFamily: {

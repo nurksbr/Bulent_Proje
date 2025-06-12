@@ -1,21 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <svg width="600" height="400" viewBox="0 0 600 400" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="600" height="400" rx="10" fill="#6D28D9" fill-opacity="0.1"/>
-  <circle cx="300" cy="200" r="150" fill="#6D28D9" fill-opacity="0.2"/>
-  <path d="M300 100C317.239 100 334.144 104.015 349.081 111.667C364.019 119.319 376.445 130.377 385.257 143.938C394.07 157.499 398.946 173.134 399.451 189.226C399.956 205.319 396.071 221.24 388.273 235.379L300 200L300 100Z" fill="#6D28D9" fill-opacity="0.5"/>
-  <path d="M300 100C282.761 100 265.856 104.015 250.919 111.667C235.981 119.319 223.555 130.377 214.743 143.938C205.93 157.499 201.054 173.134 200.549 189.226C200.044 205.319 203.929 221.24 211.727 235.379L300 200L300 100Z" fill="#4C1D95" fill-opacity="0.5"/>
-  <path d="M388.273 235.379C380.474 249.517 368.913 261.427 354.764 269.686C340.616 277.945 324.421 282.263 307.919 282.158C291.417 282.053 275.277 277.528 261.24 269.089C247.204 260.65 235.8 248.597 228.2 234.368L300 200L388.273 235.379Z" fill="#8B5CF6" fill-opacity="0.5"/>
-  <path d="M211.727 235.379C203.929 221.24 200.044 205.319 200.549 189.226C201.054 173.134 205.93 157.499 214.743 143.938L300 200L211.727 235.379Z" fill="#7C3AED" fill-opacity="0.5"/>
-  <text x="300" y="205" fill="#4C1D95" font-family="Arial, sans-serif" font-size="18" font-weight="bold" text-anchor="middle">TikoBilişim</text>
-  <path d="M430 150L470 150M450 130L450 170" stroke="#7C3AED" stroke-width="5" stroke-linecap="round"/>
-  <path d="M130 150L170 150" stroke="#7C3AED" stroke-width="5" stroke-linecap="round"/>
-  <path d="M200 270L240 270M220 250L220 290" stroke="#7C3AED" stroke-width="5" stroke-linecap="round"/>
-  <path d="M380 270L420 270" stroke="#7C3AED" stroke-width="5" stroke-linecap="round"/>
-  <path d="M160 50L160 90" stroke="#7C3AED" stroke-width="5" stroke-linecap="round"/>
-  <path d="M430 50L430 90" stroke="#7C3AED" stroke-width="5" stroke-linecap="round"/>
-  <path d="M150 320L190 320" stroke="#7C3AED" stroke-width="5" stroke-linecap="round"/>
-  <path d="M450 320L450 360" stroke="#7C3AED" stroke-width="5" stroke-linecap="round"/>
-  <rect x="240" y="120" width="120" height="60" rx="10" fill="#6D28D9" fill-opacity="0.2"/>
-  <rect x="290" y="100" width="80" height="40" rx="8" fill="#6D28D9" fill-opacity="0.3"/>
-  <rect x="220" y="260" width="160" height="20" rx="5" fill="#6D28D9" fill-opacity="0.2"/>
-  <rect x="260" y="240" width="80" height="15" rx="3" fill="#6D28D9" fill-opacity="0.3"/>
+  <rect width="600" height="400" fill="#F3F4F6"/>
+  <path d="M300 100C344.183 100 380 135.817 380 180C380 224.183 344.183 260 300 260C255.817 260 220 224.183 220 180C220 135.817 255.817 100 300 100Z" fill="#8B5CF6"/>
+  <path d="M300 140C322.091 140 340 157.909 340 180C340 202.091 322.091 220 300 220C277.909 220 260 202.091 260 180C260 157.909 277.909 140 300 140Z" fill="#C4B5FD"/>
+  <path d="M300 180L340 220L260 220L300 180Z" fill="#7C3AED"/>
+</svg>
  
