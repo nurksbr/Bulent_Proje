@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { PDFDownloadLink, Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/renderer';
+import { PDFDownloadLink, Document, Page, Text, View, StyleSheet, Font, Image } from '@react-pdf/renderer';
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../firebase/config";
 import UrunEkleModal from "../components/UrunEkleModal";
+import { aktifProjeler, Proje } from "@/app/data/projeler";
 
 // Font.register({
 //   family: 'Roboto',
@@ -22,231 +23,192 @@ interface Urun {
   durumRenk: string;
 }
 
+// BASE64 LOGO (örnek, gerçek base64 ile değiştirilecek)
+const LOGO_BASE64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAAADhCAYAAAB...";
+
 // PDF stilleri
 const styles = StyleSheet.create({
   page: {
-    padding: 40,
+    padding: 32,
+    fontSize: 11,
     fontFamily: 'Helvetica',
+    backgroundColor: '#fff',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 40,
+    alignItems: 'flex-start',
+    marginBottom: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+    borderBottomStyle: 'solid',
+    paddingBottom: 12,
   },
-  headerLeft: {
-    flexDirection: 'column',
+  logo: {
+    width: 64,
+    height: 64,
   },
-  headerRight: {
+  companyInfo: {
     flexDirection: 'column',
     alignItems: 'flex-end',
   },
   companyName: {
-    fontSize: 24,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#e53e3e',
-    marginBottom: 5,
+    marginBottom: 2,
   },
-  companyInfo: {
+  companyDetails: {
     fontSize: 10,
     color: '#4a5568',
-    marginBottom: 2,
+    marginBottom: 1,
   },
   invoiceTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 20,
+    marginVertical: 12,
+    color: '#2d3748',
     textAlign: 'center',
-    color: '#2d3748',
   },
-  section: {
-    marginBottom: 20,
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
   },
-  sectionTitle: {
-    fontSize: 12,
+  infoBlock: {
+    flexDirection: 'column',
+  },
+  infoLabel: {
+    fontSize: 10,
+    color: '#718096',
+  },
+  infoValue: {
+    fontSize: 11,
+    color: '#1a202c',
     fontWeight: 'bold',
-    marginBottom: 5,
-    color: '#2d3748',
   },
   table: {
+    display: 'flex',
     width: 'auto',
-    marginBottom: 20,
-  },
-  tableHeader: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#2d3748',
-    borderBottomStyle: 'solid',
-    paddingBottom: 5,
-    marginBottom: 5,
+    marginTop: 16,
+    borderStyle: 'solid',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
   },
   tableRow: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
-    borderBottomStyle: 'solid',
-    paddingVertical: 5,
+    borderBottomColor: '#e5e7eb',
+    minHeight: 24,
+    alignItems: 'center',
+  },
+  tableHeader: {
+    backgroundColor: '#f7fafc',
   },
   tableCol: {
     width: '25%',
+    borderRightWidth: 1,
+    borderRightColor: '#e5e7eb',
+    padding: 6,
   },
   tableCell: {
     fontSize: 10,
-    color: '#4a5568',
-  },
-  headerCell: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    color: '#2d3748',
-  },
-  footer: {
-    marginTop: 40,
-    paddingTop: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#e2e8f0',
-    borderTopStyle: 'solid',
-  },
-  footerText: {
-    fontSize: 9,
-    color: '#718096',
-    marginBottom: 3,
-  },
-  totalSection: {
-    marginTop: 20,
-    alignItems: 'flex-end',
+    color: '#1f2937',
   },
   totalRow: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    marginBottom: 5,
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
   },
   totalLabel: {
-    fontSize: 10,
-    color: '#4a5568',
-    width: 100,
-    textAlign: 'right',
+    fontSize: 12,
+    color: '#1f2937',
+    marginRight: 10,
   },
   totalValue: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    color: '#2d3748',
-    width: 100,
-    textAlign: 'right',
-  },
-  grandTotal: {
     fontSize: 12,
+    color: '#1f2937',
     fontWeight: 'bold',
-    color: '#e53e3e',
   },
   notes: {
-    marginTop: 30,
+    marginTop: 24,
     fontSize: 9,
     color: '#718096',
-  }
+  },
+  footer: {
+    marginTop: 32,
+    fontSize: 9,
+    color: '#718096',
+    textAlign: 'center',
+  },
 });
 
 // Tekil ürün için PDF bileşeni
 const TekilUrunFaturaPDF = ({ urun }: { urun: Urun }) => {
-  const faturaNo = `GS${Math.floor(Math.random() * 1000000)}`;
+  const kdv = urun.fiyat * 0.18;
+  const toplam = urun.fiyat + kdv;
   const tarih = new Date().toLocaleDateString('tr-TR');
-  const kdvOrani = 0.18; // %18 KDV
-  const fiyat = parseFloat(urun.fiyat.replace('₺', '').replace(',', ''));
-  const kdvTutari = fiyat * kdvOrani;
-  const genelToplam = fiyat + kdvTutari;
+  const faturaNo = `GS${String(urun.id).slice(-6).padStart(6, '0')}`;
 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* Başlık Bölümü */}
+        {/* Header & Logo */}
         <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <Text style={styles.companyName}>KS1 Teknok</Text>
-            <Text style={styles.companyInfo}>Gap Mah. Saygılar İş Merkezi</Text>
-            <Text style={styles.companyInfo}>Atatürk Blv. Kat:1/1</Text>
-            <Text style={styles.companyInfo}>Merkez / BATMAN</Text>
-            <Text style={styles.companyInfo}>Tel: 0542 651 34 34</Text>
-          </View>
-          <View style={styles.headerRight}>
-            <Text style={styles.companyInfo}>Vergi Dairesi: Batman</Text>
-            <Text style={styles.companyInfo}>Vergi No: 1234567890</Text>
-            <Text style={styles.companyInfo}>Mersis No: 0123456789100001</Text>
+          <Image src={LOGO_BASE64} style={styles.logo} />
+          <View style={styles.companyInfo}>
+            <Text style={styles.companyName}>KS1 TEKNOLOJİ</Text>
+            <Text style={styles.companyDetails}>Gap Mah. Saygılar İş Merkezi</Text>
+            <Text style={styles.companyDetails}>Atatürk Blv. Kat:1/1</Text>
+            <Text style={styles.companyDetails}>Merkez / BATMAN</Text>
+            <Text style={styles.companyDetails}>Tel: 0542 651 34 34</Text>
+            <Text style={styles.companyDetails}>Vergi Dairesi: Batman</Text>
+            <Text style={styles.companyDetails}>Vergi No: 1234567890</Text>
           </View>
         </View>
-
         <Text style={styles.invoiceTitle}>FATURA</Text>
-
-        {/* Fatura Bilgileri */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>FATURA BİLGİLERİ</Text>
-          <Text style={styles.tableCell}>Fatura No: {faturaNo}</Text>
-          <Text style={styles.tableCell}>Fatura Tarihi: {tarih}</Text>
+        {/* Fatura ve Müşteri Bilgileri */}
+        <View style={styles.infoRow}>
+          <View style={styles.infoBlock}>
+            <Text style={styles.infoLabel}>Fatura No</Text>
+            <Text style={styles.infoValue}>{faturaNo}</Text>
+            <Text style={styles.infoLabel}>Fatura Tarihi</Text>
+            <Text style={styles.infoValue}>{tarih}</Text>
+          </View>
+          <View style={styles.infoBlock}>
+            <Text style={styles.infoLabel}>Müşteri</Text>
+            <Text style={styles.infoValue}>Genel Müşteri</Text>
+            <Text style={styles.infoLabel}>Adres</Text>
+            <Text style={styles.infoValue}>Batman, Türkiye</Text>
+          </View>
         </View>
-
         {/* Ürün Tablosu */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>ÜRÜN BİLGİLERİ</Text>
-          <View style={styles.table}>
-            <View style={styles.tableHeader}>
-              <View style={styles.tableCol}>
-                <Text style={styles.headerCell}>Ürün Adı</Text>
-              </View>
-              <View style={styles.tableCol}>
-                <Text style={styles.headerCell}>Kategori</Text>
-              </View>
-              <View style={styles.tableCol}>
-                <Text style={styles.headerCell}>Birim Fiyat</Text>
-              </View>
-              <View style={styles.tableCol}>
-                <Text style={styles.headerCell}>Stok</Text>
-              </View>
-            </View>
-            
-            <View style={styles.tableRow}>
-              <View style={styles.tableCol}>
-                <Text style={styles.tableCell}>{urun.ad}</Text>
-              </View>
-              <View style={styles.tableCol}>
-                <Text style={styles.tableCell}>{urun.kategori}</Text>
-              </View>
-              <View style={styles.tableCol}>
-                <Text style={styles.tableCell}>{urun.fiyat.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' })}</Text>
-              </View>
-              <View style={styles.tableCol}>
-                <Text style={styles.tableCell}>{urun.stok}</Text>
-              </View>
-            </View>
+        <View style={[styles.table, { marginTop: 24 }]}>
+          <View style={[styles.tableRow, styles.tableHeader]}>
+            <View style={styles.tableCol}><Text style={styles.tableCell}>Ürün Adı</Text></View>
+            <View style={styles.tableCol}><Text style={styles.tableCell}>Kategori</Text></View>
+            <View style={styles.tableCol}><Text style={styles.tableCell}>Fiyat</Text></View>
+            <View style={styles.tableCol}><Text style={styles.tableCell}>KDV (%18)</Text></View>
+          </View>
+          <View style={styles.tableRow}>
+            <View style={styles.tableCol}><Text style={styles.tableCell}>{urun.ad}</Text></View>
+            <View style={styles.tableCol}><Text style={styles.tableCell}>{urun.kategori}</Text></View>
+            <View style={styles.tableCol}><Text style={styles.tableCell}>{urun.fiyat.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' })}</Text></View>
+            <View style={styles.tableCol}><Text style={styles.tableCell}>{kdv.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' })}</Text></View>
           </View>
         </View>
-
-        {/* Toplam Bölümü */}
-        <View style={styles.totalSection}>
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Ara Toplam:</Text>
-            <Text style={styles.totalValue}>{urun.fiyat.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' })}</Text>
-          </View>
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>KDV (%18):</Text>
-            <Text style={styles.totalValue}>₺{kdvTutari.toFixed(2)}</Text>
-          </View>
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Genel Toplam:</Text>
-            <Text style={[styles.totalValue, styles.grandTotal]}>₺{genelToplam.toFixed(2)}</Text>
-          </View>
+        {/* Toplamlar */}
+        <View style={styles.totalRow}>
+          <Text style={styles.totalLabel}>Genel Toplam:</Text>
+          <Text style={styles.totalValue}>{toplam.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' })}</Text>
         </View>
-
         {/* Notlar */}
-        <View style={styles.notes}>
-          <Text>Notlar:</Text>
-          <Text>1. Bu fatura elektronik ortamda oluşturulmuştur.</Text>
-          <Text>2. Ödeme 30 gün içinde yapılmalıdır.</Text>
-          <Text>3. Fatura iade süresi 14 gündür.</Text>
-        </View>
-
-        {/* Alt Bilgi */}
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>KS1 Teknok - Güvenlik Sistemleri</Text>
-          <Text style={styles.footerText}>www.ks1teknok.com</Text>
-          <Text style={styles.footerText}>info@ks1teknok.com</Text>
-        </View>
+        <Text style={styles.notes}>Bu fatura elektronik ortamda oluşturulmuştur. Ödeme süresi 30 gündür. Fatura iade süresi 14 gündür.</Text>
+        {/* Footer */}
+        <Text style={styles.footer}>KS1 TEKNOLOJİ - Güvenlik Sistemleri | www.ks1teknok.com | info@ks1teknok.com</Text>
       </Page>
     </Document>
   );
@@ -293,30 +255,6 @@ const guvenlikUrunleri = [
     stok: "12",
     durum: "Aktif",
     durumRenk: "bg-green-100 text-green-700"
-  },
-];
-
-const aktifProjeler = [
-  { 
-    no: "GS234612", 
-    musteri: "Belediye Binası", 
-    urun: "IP Kamera Sistemi", 
-    durum: "Kurulum Aşamasında", 
-    durumRenk: "bg-yellow-100 text-yellow-700" 
-  },
-  { 
-    no: "GS234611", 
-    musteri: "Plaza İş Merkezi", 
-    urun: "Geçiş Kontrol Sistemi", 
-    durum: "Tamamlandı", 
-    durumRenk: "bg-green-100 text-green-700" 
-  },
-  { 
-    no: "GS234609", 
-    musteri: "Alışveriş Merkezi", 
-    urun: "Alarm Sistemi", 
-    durum: "Planlama Aşamasında", 
-    durumRenk: "bg-blue-100 text-blue-700" 
   },
 ];
 
@@ -409,12 +347,13 @@ export default function GuvenlikSistemleri() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-gray-500 text-xs">
-                  <th className="text-left py-2">ÜRÜN ADI</th>
-                  <th className="text-left py-2">KATEGORİ</th>
-                  <th className="text-left py-2">FİYAT</th>
-                  <th className="text-left py-2">STOK</th>
-                  <th className="text-left py-2">DURUM</th>
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ürün Adı</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kategori</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fiyat</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stok</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Durum</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">İŞLEM</th>
                 </tr>
               </thead>
               <tbody>
@@ -428,15 +367,30 @@ export default function GuvenlikSistemleri() {
                   </tr>
                 ) : (
                   urunler.map((urun) => (
-                    <tr key={urun.id} className="border-b last:border-b-0">
-                      <td className="py-2 font-medium">{urun.ad}</td>
-                      <td className="py-2">{urun.kategori}</td>
-                      <td className="py-2">{urun.fiyat.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' })}</td>
-                      <td className="py-2">{urun.stok}</td>
-                      <td className="py-2">
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${urun.durumRenk}`}>
+                    <tr key={urun.id}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{urun.ad}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{urun.kategori}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {urun.fiyat.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' })}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{urun.stok}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span
+                          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${urun.durumRenk}`}
+                        >
                           {urun.durum}
                         </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <PDFDownloadLink
+                          document={<TekilUrunFaturaPDF urun={urun} />}
+                          fileName={`${urun.ad}-fatura.pdf`}
+                          className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md text-sm"
+                        >
+                          {({ blob, url, loading, error }) =>
+                            loading ? 'Yükleniyor...' : 'Fatura İndir'
+                          }
+                        </PDFDownloadLink>
                       </td>
                     </tr>
                   ))
